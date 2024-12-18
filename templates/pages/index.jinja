@@ -1,0 +1,137 @@
+{% extends "base.jinja" %}
+
+{% block content %}
+{% csrf_token %}
+<style id="films_styles"></style>
+<div class="modal fade" id="modalMovie" tabindex="-1" aria-labelledby="modalMovieLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="exampleModalLabel">New message</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <div class="mb-3">
+              <label for="recipient-name" class="col-form-label">Recipient:</label>
+              <input type="text" class="form-control" id="recipient-name">
+            </div>
+            <div class="mb-3">
+              <label for="message-text" class="col-form-label">Message:</label>
+              <textarea class="form-control" id="message-text"></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary">Send message</button>
+        </div>
+      </div>
+    </div>
+  </div>
+<div class="films" id="films">
+    {% for movie in movies %}
+    <div class="film">
+        <button type="button" data-bs-toggle="modalMovie" data-bs-target="#modalMovie" data-bs-whatever="{{ movie.id }}">
+            <div class="card">
+                <div class="card-header d-flex">
+                    <img class="card-image" src="{{ movie.images.all.0.image }}">
+                </div>
+                <div class="card-body">
+                    <h6>{{ movie.title }}</h6>
+                </div>
+            </div>
+        </button>
+    </div>
+    {% endfor %}
+</div>
+{% endblock content %}
+
+{% block script %}
+<script>
+    const cookies = document.cookie.split('; ').reduce((prev, current) => {
+        const [name, ...value] = current.split('=');
+        prev[name] = value.join('=');
+        return prev;
+    }, {});
+
+    var loaded = false;
+    var endReached = false;
+    function load_movies() {
+        let films = document.getElementById("films");
+        if (!endReached && !loaded && (window.scrollY > document.body.scrollHeight - window.innerHeight - 500)) {
+            loaded = true;
+
+            const url = "/api/get_movies";
+            let formData = new FormData();
+            formData.append("index", films.children.length);
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', url);
+            xhr.responseType = "json";
+            xhr.setRequestHeader("X-CSRFToken", cookies.csrftoken);
+            xhr.send(formData);
+            xhr.onload = () => {
+                if (xhr.response.update.length === 0) {
+                    endReached = true;
+                }
+
+                new_movies = xhr.response.update
+                new_movies.forEach((movie) => {
+                    let film = `
+                    <div class="film">
+                        <div class="card">
+                            <div class="card-header d-flex">
+                                <img class="card-image" src="${movie.images[0]}">
+                            </div>
+                            <div class="card-body">
+                                <h6>${movie.title}</h6>
+                            </div>
+                        </div>
+                    </div>
+                    `
+                    films.innerHTML += film;
+                });
+                loaded = false;
+            };
+        }
+    }
+
+    function CalculateCardMargin() {
+        const width = document.getElementById("films").clientWidth;
+        const card_width = 150;
+        const min_margin = 30;
+        const card_quantity = parseInt(width / (card_width + min_margin));
+        const margin = (width - (card_width * card_quantity)) / (card_quantity - 1);
+        const styles = document.getElementById("films_styles");
+        styles.textContent = `.film.film:not(:nth-of-type(${card_quantity}n)) { margin-right: ${margin}px }`;
+    }
+
+    const exampleModal = document.getElementById('exampleModal')
+    if (exampleModal) {
+        exampleModal.addEventListener('show.bs.modal', event => {
+        const button = event.relatedTarget
+        const recipient = button.getAttribute('data-bs-whatever')
+
+        const modalTitle = exampleModal.querySelector('.modal-title')
+        const modalBodyInput = exampleModal.querySelector('.modal-body input')
+
+        modalTitle.textContent = `New message to ${recipient}`
+        modalBodyInput.value = recipient
+    })
+    }
+
+    window.addEventListener("scroll",  load_movies);
+    window.addEventListener("DOMContentLoaded", CalculateCardMargin);
+    window.addEventListener("resize", CalculateCardMargin);
+</script>
+{% endblock script %}
+
+<div class="card film">
+    <div class="card-header d-flex">
+        <img class="card-image" src="{{ movie.images.all.0.image }}">
+    </div>
+    <div class="card-body">
+        <h6>{{ movie.title }}</h6>
+    </div>
+</div>

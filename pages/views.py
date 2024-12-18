@@ -21,7 +21,7 @@ def index(request):
     # sorted(Movie.objects.all(), key=lambda movie: movie.links.all()[0].origin)
     # print(context["movies"])
     
-    return render(request, 'pages/index.djt', context)
+    return render(request, 'pages/index.jinja', context)
 
 @require_POST
 def get_movies(request):
