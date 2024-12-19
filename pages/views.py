@@ -2,12 +2,9 @@ from django.views.decorators.http import require_POST, require_GET
 from django.shortcuts import render, redirect, HttpResponse
 from django.urls import reverse
 
-
 from .models import Movie, Movie_link, Movie_image
 
-
 from json import dumps
-import os
 
 
 def remove_symbols(string: str, symbols: str):
@@ -21,7 +18,7 @@ def index(request):
     # sorted(Movie.objects.all(), key=lambda movie: movie.links.all()[0].origin)
     # print(context["movies"])
     
-    return render(request, 'pages/index.djt', context)
+    return render(request, 'pages/index.jinja', context)
 
 @require_POST
 def get_movies(request):
@@ -44,5 +41,48 @@ def get_movies(request):
             ]
         } for movie in Movie.objects.all()[index:index+20]
     ]
+
+    return HttpResponse(dumps(data))
+
+@require_POST
+def get_movie_info(request):
+    movie_id: str = request.POST.get("movie_id")
+    if not movie_id.isdigit(): return HttpResponse(content="error")
+    
+    movie = Movie.objects.filter(Movie.pk == int(movie_id))
+    
+    data = dict()
+    data["movie"] = {
+        "title": movie.title,
+        "description": movie.description,
+        "translit_title": movie.translit_title,
+        "links": [
+            {
+                "link": link.link,
+                "origin": link.origin
+            } for link in movie.links.all()
+        ],
+        "images": [
+            image.image.name for image in movie.images.all()
+        ]
+    }
+    
+    # data = dict()
+    # data["update"] = [
+    #     {
+    #         "title": movie.title,
+    #         "description": movie.description,
+    #         "translit_title": movie.translit_title,
+    #         "links": [
+    #             {
+    #                 "link": link.link,
+    #                 "origin": link.origin
+    #             } for link in movie.links.all()
+    #         ],
+    #         "images": [
+    #             image.image.name for image in movie.images.all()
+    #         ]
+    #     } for movie in Movie.objects.all()[index:index+20]
+    # ]
 
     return HttpResponse(dumps(data))

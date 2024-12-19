@@ -1,0 +1,125 @@
+{% extends "base.jinja" %} {% block content %} {% csrf_token %}
+<style id="films_styles"></style>
+<div class="modal fade" id="modalMovie" tabindex="-1" aria-labelledby="modalMovieLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <!-- <div class="modal-header">
+                <h1 class="modal-title fs-5" id="modalMovieLabel">New message</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modalMovie" aria-label="Close"></button>
+            </div> -->
+            <div class="modal-body">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="movie-image"><img src=""></div>
+            </div>
+            <!-- <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Send message</button>
+            </div> -->
+        </div>
+    </div>
+</div>
+<div class="films" id="films">
+    {% for movie in movies %}
+    <div class="film">
+        <div class="card">
+            <div class="card-wrapper">
+                <div class="card-header d-flex">
+                    <img class="card-image" src="{{ movie.images.all.0.image }}">
+                </div>
+                <div class="card-body">
+                    <h6>{{ movie.title }}</h6>
+                </div>
+                <button class="card-button" type="button" data-bs-toggle="modal" data-bs-target="#modalMovie" data-bs-id="{{ movie.id }}" data-bs-image="{{ movie.images.all.0.image }}"></button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock content %} {% block script %}
+<script>
+    const cookies = document.cookie.split('; ').reduce((prev, current) => {
+        const [name, ...value] = current.split('=');
+        prev[name] = value.join('=');
+        return prev;
+    }, {});
+
+    var loaded = false;
+    var endReached = false;
+
+    function load_movies() {
+        let films = document.getElementById("films");
+        if (!endReached && !loaded && (window.scrollY > document.body.scrollHeight - window.innerHeight - 500)) {
+            loaded = true;
+
+            const url = "/api/get_movies";
+            let formData = new FormData();
+            formData.append("index", films.children.length);
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', url);
+            xhr.responseType = "json";
+            xhr.setRequestHeader("X-CSRFToken", cookies.csrftoken);
+            xhr.send(formData);
+            xhr.onload = () => {
+                if (xhr.response.update.length === 0) {
+                    endReached = true;
+                }
+
+                new_movies = xhr.response.update
+                new_movies.forEach((movie) => {
+                    let film = `
+                    <div class="film">
+                        <div class="card">
+                            <div class="card-header d-flex">
+                                <img class="card-image" src="${movie.images[0]}">
+                            </div>
+                            <div class="card-body">
+                                <h6>${movie.title}</h6>
+                            </div>
+                        </div>
+                    </div>
+                    `
+                    films.innerHTML += film;
+                });
+                loaded = false;
+            };
+        }
+    }
+
+    const exampleModal = document.getElementById('modalMovie')
+    if (exampleModal) {
+        exampleModal.addEventListener('show.bs.modal', event => {
+            const button = event.relatedTarget
+            const id = button.getAttribute('data-bs-id')
+            const image = button.getAttribute('data-bs-image')
+
+            const modalImage = exampleModal.querySelector('.movie-image img')
+
+            modalImage.setAttribute("src", image)
+        })
+    }
+
+    function CalculateCardMargin() {
+        const width = document.getElementById("films").clientWidth;
+        const card_width = 150;
+        const min_margin = 30;
+        const card_quantity = parseInt(width / (card_width + min_margin));
+        const margin = (width - (card_width * card_quantity)) / (card_quantity - 1);
+        const styles = document.getElementById("films_styles");
+        styles.textContent = `.film.film:not(:nth-of-type(${card_quantity}n)) { margin-right: ${margin}px }`;
+    }
+
+    window.addEventListener("scroll", load_movies);
+    window.addEventListener("DOMContentLoaded", CalculateCardMargin);
+    window.addEventListener("resize", CalculateCardMargin);
+</script>
+{% endblock script %}
+
+<div class="card film">
+    <div class="card-header d-flex">
+        <img class="card-image" src="{{ movie.images.all.0.image }}">
+    </div>
+    <div class="card-body">
+        <h6>{{ movie.title }}</h6>
+    </div>
+</div>
