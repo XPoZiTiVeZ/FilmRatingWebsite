@@ -26,7 +26,8 @@ def get_movies(request):
     
     data = dict()
     data["update"] = [
-        {
+        {   
+            "id": movie.id,
             "title": movie.title,
             "description": movie.description,
             "translit_title": movie.translit_title,
@@ -45,14 +46,17 @@ def get_movies(request):
     return HttpResponse(dumps(data))
 
 @require_POST
-def get_movie_info(request):
+def get_movie(request):
     movie_id: str = request.POST.get("movie_id")
-    if not movie_id.isdigit(): return HttpResponse(content="error")
-    
-    movie = Movie.objects.filter(Movie.pk == int(movie_id))
     
     data = dict()
+    if not movie_id.isdigit():
+        data["status"] = 400
+        return HttpResponse(dumps(data))
+    
+    movie = Movie.objects.filter(id = movie_id).first()  
     data["movie"] = {
+        "id": movie.id,
         "title": movie.title,
         "description": movie.description,
         "translit_title": movie.translit_title,
@@ -66,23 +70,6 @@ def get_movie_info(request):
             image.image.name for image in movie.images.all()
         ]
     }
-    
-    # data = dict()
-    # data["update"] = [
-    #     {
-    #         "title": movie.title,
-    #         "description": movie.description,
-    #         "translit_title": movie.translit_title,
-    #         "links": [
-    #             {
-    #                 "link": link.link,
-    #                 "origin": link.origin
-    #             } for link in movie.links.all()
-    #         ],
-    #         "images": [
-    #             image.image.name for image in movie.images.all()
-    #         ]
-    #     } for movie in Movie.objects.all()[index:index+20]
-    # ]
+    data["status"] = 200
 
     return HttpResponse(dumps(data))

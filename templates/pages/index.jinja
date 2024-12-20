@@ -1,20 +1,21 @@
-{% extends "base.jinja" %} {% block content %} {% csrf_token %}
+{% extends "base.jinja" %}
+
+{% block content %}
+{% csrf_token %}
 <style id="films_styles"></style>
 <div class="modal fade" id="modalMovie" tabindex="-1" aria-labelledby="modalMovieLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <!-- <div class="modal-header">
-                <h1 class="modal-title fs-5" id="modalMovieLabel">New message</h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modalMovie" aria-label="Close"></button>
-            </div> -->
             <div class="modal-body">
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 <div class="movie-image"><img src=""></div>
+                <div class="movie-content">
+                    <h4 class="movie-title"></h4>
+                    <div class="movie-tags"></div>
+                    <p class="movie-description"></p>
+                    <div class="movie-links"></div>
+                </div>
             </div>
-            <!-- <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary">Send message</button>
-            </div> -->
         </div>
     </div>
 </div>
@@ -35,7 +36,9 @@
     </div>
     {% endfor %}
 </div>
-{% endblock content %} {% block script %}
+{% endblock content %}
+
+{% block script %}
 <script>
     const cookies = document.cookie.split('; ').reduce((prev, current) => {
         const [name, ...value] = current.split('=');
@@ -51,7 +54,7 @@
         if (!endReached && !loaded && (window.scrollY > document.body.scrollHeight - window.innerHeight - 500)) {
             loaded = true;
 
-            const url = "/api/get_movies";
+            const url = "{% url 'get_movies' %}";
             let formData = new FormData();
             formData.append("index", films.children.length);
 
@@ -70,11 +73,14 @@
                     let film = `
                     <div class="film">
                         <div class="card">
-                            <div class="card-header d-flex">
-                                <img class="card-image" src="${movie.images[0]}">
-                            </div>
-                            <div class="card-body">
-                                <h6>${movie.title}</h6>
+                            <div class="card-wrapper">
+                                <div class="card-header d-flex">
+                                    <img class="card-image" src="${movie.images[0]}">
+                                </div>
+                                <div class="card-body">
+                                    <h6>${movie.title}</h6>
+                                </div>
+                                <button class="card-button" type="button" data-bs-toggle="modal" data-bs-target="#modalMovie" data-bs-id="${movie.id}" data-bs-image="${movie.images[0]}"></button>
                             </div>
                         </div>
                     </div>
@@ -86,16 +92,50 @@
         }
     }
 
-    const exampleModal = document.getElementById('modalMovie')
-    if (exampleModal) {
-        exampleModal.addEventListener('show.bs.modal', event => {
+    `
+    <div class="movie-image"><img src=""></div>
+    <h4 class="movie-title"></h4>
+    <div class="movie-tags"></div>
+    <p class="movie-description"></p>
+    <div class="movie-links"></div>
+    `
+
+    const modalMovie = document.getElementById('modalMovie')
+    if (modalMovie) {
+        modalMovie.addEventListener('show.bs.modal', event => {
             const button = event.relatedTarget
             const id = button.getAttribute('data-bs-id')
             const image = button.getAttribute('data-bs-image')
 
-            const modalImage = exampleModal.querySelector('.movie-image img')
-
+            const modalImage = modalMovie.querySelector('.modal .movie-image img')
+            const modalTitle = modalMovie.querySelector('.modal .movie-title')
+            const modalTags = modalMovie.querySelector('.modal .movie-tags')
+            const modalDesc = modalMovie.querySelector('.modal .movie-description')
+            const modalLink = modalMovie.querySelector('.modal .movie-links')
             modalImage.setAttribute("src", image)
+
+            modalTags.textContent = ""
+
+            const url = "{% url 'get_movie' %}";
+            let formData = new FormData();
+            formData.append("movie_id", id);
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', url);
+            xhr.responseType = "json";
+            xhr.setRequestHeader("X-CSRFToken", cookies.csrftoken);
+            xhr.send(formData);
+            xhr.onload = () => {
+                movie = xhr.response.movie
+                modalTitle.textContent = movie.title
+                modalDesc.textContent  = movie.description
+                for (tag of movie.tags) {
+                    modalTags.textContent += `<span class="movie-tag">${tag}</span`
+                }
+                for (link of movie.link) {
+                    modalLinks.textContent += `<span class="movie-link">${link}</span`
+                }
+            }
         })
     }
 
@@ -115,11 +155,11 @@
 </script>
 {% endblock script %}
 
-<div class="card film">
+<!-- <div class="card film">
     <div class="card-header d-flex">
         <img class="card-image" src="{{ movie.images.all.0.image }}">
     </div>
     <div class="card-body">
         <h6>{{ movie.title }}</h6>
     </div>
-</div>
+</div> -->
