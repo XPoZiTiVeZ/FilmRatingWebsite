@@ -19,7 +19,11 @@ body {
     box-shadow: rgba(0, 0, 0, 0.25) 0px 54px 55px, rgba(0, 0, 0, 0.12) 0px -12px 30px, rgba(0, 0, 0, 0.12) 0px 4px 6px, rgba(0, 0, 0, 0.17) 0px 12px 13px, rgba(0, 0, 0, 0.09) 0px -3px 5px;
 }
 
-.main {
+.dropdown-toggle::after {
+    display: none;
+}
+
+.navbar .btn .main {
     height: 1px;
     flex-grow: 1;
 }
@@ -60,12 +64,12 @@ body {
 }
 
 .card h6 {
-    font-size: 1rem;
+    font-size: 0.8rem;
     transition: all ease-out 0.15s;
 }
 
 .card:hover h6 {
-    font-size: calc(1rem / 150 * 170);
+    font-size: calc(0.8rem * (170 / 150));
     transition: all ease-in 0.15s;
 }
 
@@ -88,6 +92,8 @@ body {
 }
 
 .card-wrapper {
+    display: flex;
+    flex-direction: column;
     position: relative;
     width: 100%;
     height: 100%;
@@ -126,20 +132,53 @@ body {
     right: 16px;
 }
 
+.modal .movie-title {
+    padding-right: 24px;
+}
+
 .modal .modal-body .movie-image {
-    background-color: red;
-    aspect-ratio: 9/16;
-    height: 448px;
-    margin-top: 16px;
-    margin-left: 16px;
+    aspect-ratio: 3/4;
+    height: 480px;
+    padding: 16px;
     border-radius: 0.5rem;
 }
 
 .modal .modal-body .movie-image img {
     height: 448px;
-    aspect-ratio: 9/16;
-    background-color: blue;
+    aspect-ratio: 3/4;
     border-radius: 0.5rem;
     object-fit: cover;
     object-position: center;
+}
+
+.modal .movie-content {
+    width: 100%;
+    padding: 16px 16px 16px 0;
+}
+
+.modal .movie-tags,
+.modal .movie-links {
+    display: flex;
+    width: 100%;
+    flex-direction: row;
+    margin-bottom: 5px;
+}
+
+.modal .movie-links a {
+    text-decoration: none;
+}
+
+.modal .movie-tags .movie-tag,
+.modal .movie-links .movie-link {
+    display: block;
+    background-color: rgb(138, 43, 226, 0.3);
+    width: fit-content;
+    height: 16px;
+    border-radius: 8px;
+    padding: 4px;
+    line-height: 12px;
+    box-sizing: content-box;
+    margin-right: 4px;
+    text-decoration: none;
+    color: black;
 }

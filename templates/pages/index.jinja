@@ -10,10 +10,10 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 <div class="movie-image"><img src=""></div>
                 <div class="movie-content">
-                    <h4 class="movie-title"></h4>
+                    <h5 class="movie-title"></h5>
                     <div class="movie-tags"></div>
-                    <p class="movie-description"></p>
                     <div class="movie-links"></div>
+                    <p class="movie-description"></p>
                 </div>
             </div>
         </div>
@@ -92,14 +92,6 @@
         }
     }
 
-    `
-    <div class="movie-image"><img src=""></div>
-    <h4 class="movie-title"></h4>
-    <div class="movie-tags"></div>
-    <p class="movie-description"></p>
-    <div class="movie-links"></div>
-    `
-
     const modalMovie = document.getElementById('modalMovie')
     if (modalMovie) {
         modalMovie.addEventListener('show.bs.modal', event => {
@@ -111,10 +103,11 @@
             const modalTitle = modalMovie.querySelector('.modal .movie-title')
             const modalTags = modalMovie.querySelector('.modal .movie-tags')
             const modalDesc = modalMovie.querySelector('.modal .movie-description')
-            const modalLink = modalMovie.querySelector('.modal .movie-links')
+            const modalLinks = modalMovie.querySelector('.modal .movie-links')
             modalImage.setAttribute("src", image)
 
             modalTags.textContent = ""
+            modalLinks.textContent = ""
 
             const url = "{% url 'get_movie' %}";
             let formData = new FormData();
@@ -126,14 +119,24 @@
             xhr.setRequestHeader("X-CSRFToken", cookies.csrftoken);
             xhr.send(formData);
             xhr.onload = () => {
-                movie = xhr.response.movie
-                modalTitle.textContent = movie.title
-                modalDesc.textContent  = movie.description
+                movie = xhr.response.movie;
+                modalTitle.textContent = movie.title;
+                modalDesc.textContent  = movie.description;
                 for (tag of movie.tags) {
-                    modalTags.textContent += `<span class="movie-tag">${tag}</span`
+                    tag_element = document.createElement(`span`);
+                    tag_element.classList.add(`movie-tag`);
+                    tag_element.textContent = tag.name;
+                    modalTags.appendChild(tag_element);
                 }
-                for (link of movie.link) {
-                    modalLinks.textContent += `<span class="movie-link">${link}</span`
+                for (link of movie.links) {
+                    link_element = document.createElement(`span`);
+                    a_element = document.createElement(`a`);
+                    link_element.classList.add(`movie-link`);
+                    a_element.setAttribute(`href`, link.link);
+                    a_element.setAttribute(`target`, `_blank`);
+                    link_element.textContent = link.origin;
+                    a_element.appendChild(link_element);
+                    modalLinks.appendChild(a_element);
                 }
             }
         })

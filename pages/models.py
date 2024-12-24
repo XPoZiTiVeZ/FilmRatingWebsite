@@ -7,8 +7,8 @@ class Movie_tag(models.Model):
         return self.name
     
     class Meta:
-        verbose_name = "Ярлык"
-        verbose_name_plural = "Ярлыки"
+        verbose_name = "Категория"
+        verbose_name_plural = "Категории"
 
 class Movie_image(models.Model):
     image = models.ImageField(upload_to="media/movie_images/", blank=True, null=True)

@@ -66,6 +66,11 @@ def get_movie(request):
                 "origin": link.origin
             } for link in movie.links.all()
         ],
+        "tags": [
+            {
+                "name": tag.name
+            } for tag in movie.tags.all()
+        ],
         "images": [
             image.image.name for image in movie.images.all()
         ]
